@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ru" data-sw="./sw.js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TG WS Proxy — Telegram через WebSocket-туннель</title>
+  <meta name="description" content="TG WS Proxy подключает Telegram через быстрый WebSocket-туннель: авто-реконнект, TLS-обфускация, без логов и рекламы. Бесплатно. Windows 10/11.">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+
+  <!-- при деплое раскомментируйте и укажите свой домен -->
+  <!-- <link rel="canonical" href="https://ваш-домен/"> -->
+  <!-- <link rel="alternate" hreflang="ru" href="https://ваш-домен/"> -->
+  <!-- <link rel="alternate" hreflang="en" href="https://ваш-домен/en/"> -->
+  <!-- <link rel="alternate" hreflang="x-default" href="https://ваш-домен/"> -->
+  <!-- <meta property="og:url" content="https://ваш-домен/"> -->
+  <!-- <meta property="og:image" content="https://ваш-домен/og-image.png"> -->
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TG WS Proxy">
+  <meta property="og:title" content="TG WS Proxy — Telegram через WebSocket-туннель">
+  <meta property="og:description" content="Поднимает WebSocket-туннель до прокси-узла и держит соединение с Telegram открытым — в один клик, без лишних настроек.">
+  <meta property="og:image" content="og-image.png">
+  <meta property="og:locale" content="ru_RU">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="TG WS Proxy — Telegram через WebSocket-туннель">
+  <meta name="twitter:description" content="Стабильный доступ к Telegram через ws-туннель. Один клик, Windows 10/11.">
+  <meta name="twitter:image" content="og-image.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <script>
+  try {
+    var t = localStorage.getItem('tgws-theme');
+    if (t === 'light' || (!t && matchMedia('(prefers-color-scheme: light)').matches)) {
+      document.documentElement.dataset.theme = 'light';
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fafafa');
+    }
+  } catch (e) {}
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "TG WS Proxy",
+    "operatingSystem": "Windows 10, Windows 11",
+    "applicationCategory": "SecurityApplication",
+    "softwareVersion": "1.0.0",
+    "description": "Подключает Telegram через быстрый WebSocket-туннель и держит соединение открытым. Один клик, без настроек и рекламы.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Чем TG WS Proxy отличается от VPN?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Проксируется только трафик Telegram — весь остальной интернет идёт напрямую. Это быстрее, легче для системы и не требует прав администратора." }
+      },
+      {
+        "@type": "Question",
+        "name": "Что такое ws-транспорт?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Telegram общается с прокси через WebSocket — тот же протокол, что и у обычных сайтов. Канал сложно отличить от веб-трафика, поэтому он работает там, где прямые соединения обрываются." }
+      },
+      {
+        "@type": "Question",
+        "name": "Нужно ли что-то настраивать вручную?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Нет. Приложение само проверяет ws-узлы, выбирает самый быстрый туннель и подключается одной кнопкой." }
+      },
+      {
+        "@type": "Question",
+        "name": "Это бесплатно?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Да. Версия 1.0.0 полностью бесплатна — без рекламы, подписок и ограничений по трафику." }
+      },
+      {
+        "@type": "Question",
+        "name": "Какие данные вы собираете?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Никаких. Серверы не ведут логи обращений, а все настройки хранятся только на вашем компьютере." }
+      }
+    ]
+  }
+  </script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="glow glow-a" aria-hidden="true"></div>
+  <div class="glow glow-b" aria-hidden="true"></div>
+  <canvas class="bg-canvas" id="bg" aria-hidden="true"></canvas>
+
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a class="logo" href="#top">
+        <span class="logo-dot"></span>
+        <span>TG WS Proxy</span>
+      </a>
+      <div class="nav-links">
+        <a href="#demo">Интерфейс</a>
+        <a href="#how">Как это работает</a>
+        <a href="#features">Преимущества</a>
+        <a href="#faq">FAQ</a>
+        <a href="#download">Скачать</a>
+      </div>
+      <div class="nav-tools">
+        <div class="lang">
+          <a href="./" class="active" aria-current="true">RU</a>
+          <a href="./en/">EN</a>
+        </div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему" title="Переключить тему">
+          <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M18.7 5.3l-1.8 1.8M7.1 16.9l-1.8 1.8"/>
+          </svg>
+          <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/>
+          </svg>
+        </button>
+        <a class="btn-ghost nav-cta" href="#download">Скачать</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="container">
+      <p class="overline">Прокси для Telegram на WebSocket-транспорте</p>
+      <h1>TG WS Proxy</h1>
+      <p class="slogan">Туннель живой. Telegram на связи.</p>
+      <p class="hero-sub">Поднимает WebSocket-туннель до прокси-узла и держит соединение с Telegram открытым — в один клик, без лишних настроек.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#download">Скачать для Windows</a>
+        <a class="btn-ghost" href="#how">Как это работает</a>
+      </div>
+      <span class="tunnel" aria-hidden="true"><i></i><i></i><i></i></span>
+      <p class="hero-meta">ws-транспорт&nbsp;&nbsp;·&nbsp;&nbsp;авто-реконнект&nbsp;&nbsp;·&nbsp;&nbsp;Windows 10 / 11</p>
+    </div>
+    <span class="scroll-cue" aria-hidden="true"></span>
+  </header>
+
+  <main>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <div class="ticker-group">
+        <span>WS-ТРАНСПОРТ</span><span>АВТО-РЕКОННЕКТ</span><span>KEEP-ALIVE 15 СЕК</span><span>TLS-ОБФУСКАЦИЯ</span><span>РЕЗЕРВНЫЙ УЗЕЛ</span><span>ПОРТ 443</span><span>БЕЗ ЛОГОВ</span><span>НОЛЬ РЕКЛАМЫ</span>
+      </div>
+      <div class="ticker-group">
+        <span>WS-ТРАНСПОРТ</span><span>АВТО-РЕКОННЕКТ</span><span>KEEP-ALIVE 15 СЕК</span><span>TLS-ОБФУСКАЦИЯ</span><span>РЕЗЕРВНЫЙ УЗЕЛ</span><span>ПОРТ 443</span><span>БЕЗ ЛОГОВ</span><span>НОЛЬ РЕКЛАМЫ</span>
+      </div>
+    </div>
+  </div>
+
+  <section class="section" id="demo">
+    <div class="container">
+      <p class="kicker reveal">Интерфейс</p>
+      <h2 class="reveal">Ничего лишнего. Только туннель.</h2>
+      <p class="section-sub reveal">Крупный индикатор задержки, список ws-узлов слева и одна кнопка — весь интерфейс помещается в один экран.</p>
+
+      <div class="mock reveal" id="mock">
+        <div class="mock-tb">
+          <span class="mock-dot"></span>
+          <span class="mock-name">TG WS Proxy</span>
+          <span class="mock-win" aria-hidden="true"><i></i><i></i><i></i></span>
+        </div>
+        <div class="mock-body">
+          <div class="mock-side">
+            <div class="mock-label">ws-узлы</div>
+            <div class="mock-row active"><span>Frankfurt<small>de-1.tgws.net</small></span><b id="mockA">21</b></div>
+            <div class="mock-row"><span>Amsterdam<small>nl-2.tgws.net</small></span><b>33</b></div>
+            <div class="mock-row"><span>Helsinki<small>fi-3.tgws.net</small></span><b>14</b></div>
+            <div class="mock-row"><span>Stockholm<small>se-4.tgws.net</small></span><b>47</b></div>
+          </div>
+          <div class="mock-main">
+            <div class="mock-status"><span class="dot"></span>Подключено</div>
+            <div class="mock-num"><span id="mockNum">21</span><em>ms</em></div>
+            <div class="mock-sub">Текущий туннель · Frankfurt</div>
+            <div class="mock-log" id="mockLog"><i class="ws">[ws]</i><span>инициализация туннеля…</span></div>
+            <div class="mock-progress"><i id="mockFill"></i></div>
+            <div class="mock-btn">Подключить</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="container">
+      <p class="kicker reveal">Как это работает</p>
+      <h2 class="reveal">Три шага до стабильного Telegram</h2>
+      <div class="steps">
+        <div class="step reveal">
+          <span class="step-num">01</span>
+          <h3>Диагностика</h3>
+          <p>Приложение проверяет доступные ws-узлы в реальном времени и замеряет отклик каждого туннеля.</p>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">02</span>
+          <h3>Выбор узла</h3>
+          <p>Из всех узлов выбирается самый быстрый WebSocket-сервер с минимальной задержкой.</p>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">03</span>
+          <h3>Подключение</h3>
+          <p>Telegram переключается на выбранный туннель: keep-alive и авто-реконнект держат канал открытым, DNS-кэш очищается.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="container">
+      <p class="kicker reveal">Преимущества</p>
+      <h2 class="reveal">Сделано для Telegram</h2>
+      <div class="features">
+        <div class="feature reveal">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M9 15l6-6M7.5 12.5l-2 2a3.5 3.5 0 0 0 5 5l2-2M16.5 11.5l2-2a3.5 3.5 0 0 0-5-5l-2 2"/>
+          </svg>
+          <h3>Стабильный туннель</h3>
+          <p>Keep-alive и мгновенный реконнект — соединение не рвётся даже при смене сети.</p>
+        </div>
+        <div class="feature reveal">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6l7-3z"/>
+          </svg>
+          <h3>Незаметный трафик</h3>
+          <p>WebSocket-канал выглядит как обычный веб-трафик и проходит там, где прямые соединения не работают.</p>
+        </div>
+        <div class="feature reveal">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/>
+          </svg>
+          <h3>Один клик</h3>
+          <p>Всё подключение — одна кнопка. Без ручных настроек и командной строки.</p>
+        </div>
+        <div class="feature reveal">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M20 4c-6 0-12 3-14 11l-2 5M6 15c6 1 10-2 12-9"/>
+          </svg>
+          <h3>Легковесность</h3>
+          <p>Минимум памяти, ноль фоновой активности и рекламы. Только туннель.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="container">
+      <p class="kicker reveal">FAQ</p>
+      <h2 class="reveal">Частые вопросы</h2>
+      <div class="faq-list reveal">
+        <details class="faq-item">
+          <summary>Чем TG WS Proxy отличается от VPN?</summary>
+          <p>Проксируется только трафик Telegram — весь остальной интернет идёт напрямую. Это быстрее, легче для системы и не требует прав администратора.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Что такое ws-транспорт?</summary>
+          <p>Telegram общается с прокси через WebSocket — тот же протокол, что и у обычных сайтов. Канал сложно отличить от веб-трафика, поэтому он работает там, где прямые соединения обрываются.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Нужно ли что-то настраивать вручную?</summary>
+          <p>Нет. Приложение само проверяет ws-узлы, выбирает самый быстрый туннель и подключается одной кнопкой.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Это бесплатно?</summary>
+          <p>Да. Версия 1.0.0 полностью бесплатна — без рекламы, подписок и ограничений по трафику.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Какие данные вы собираете?</summary>
+          <p>Никаких. Серверы не ведут логи обращений, а все настройки хранятся только на вашем компьютере.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="changelog">
+    <div class="container">
+      <p class="kicker reveal">Что нового</p>
+      <h2 class="reveal">Changelog</h2>
+      <div class="changelog reveal">
+        <div class="cl-item">
+          <div class="cl-ver">v1.0.0</div>
+          <div class="cl-body">
+            <div class="cl-date">2 октября 2026</div>
+            <p>Первый релиз: WebSocket-туннель до прокси-узла, авто-выбор самого быстрого сервера, keep-alive и авто-реконнект, защита DNS.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section download" id="download">
+    <div class="container">
+      <span class="tunnel tunnel-dl" aria-hidden="true"><i></i><i></i><i></i></span>
+      <h2 class="reveal">Откройте Telegram сегодня</h2>
+      <p class="dl-meta reveal">Версия 1.0.0 · Windows 10 / 11 · 64-бит</p>
+      <!-- TODO: замените href на ссылку вашего релиза .exe -->
+      <div class="dl-actions reveal">
+        <a class="btn-primary btn-big" href="#" download>Скачать для Windows</a>
+        <button class="btn-ghost btn-big" id="shareBtn" type="button">Поделиться</button>
+      </div>
+      <p class="dl-note reveal">Бесплатно · Без рекламы · Настройка за минуту</p>
+    </div>
+  </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span class="footer-brand"><span class="logo-dot"></span>© 2026 TG WS Proxy</span>
+      <div class="footer-links">
+        <a href="#top">Наверх</a>
+        <a href="support.html">Поддержка</a>
+        <a href="terms.html">Условия использования</a>
+      </div>
+    </div>
+  </footer>
+
+  <a class="mobile-cta" id="mobileCta" href="#download">Скачать TG WS Proxy</a>
+
+  <script src="app.js"></script>
+</body>
+</html>
