@@ -1,4 +1,4 @@
-/* TG WS Proxy — сайт: появление секций, живое демо, тема, фон */
+/* TG WS Proxy — сайт: демо, тема, фон, скроллспай, PWA */
 
 /* появление блоков при скролле */
 const io = new IntersectionObserver((entries) => {
@@ -11,33 +11,186 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.15 });
 document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
-/* живые цифры в демо-макете */
-const numEl = document.getElementById('mockNum');
-const rowEl = document.getElementById('mockA');
-let v = 21;
+/* ---------- интерактивное демо ---------- */
+(() => {
+  const rows = [...document.querySelectorAll('.mock-row[data-node]')];
+  const numEl = document.getElementById('mockNum');
+  const statusEl = document.getElementById('mockStatus');
+  const statusText = document.getElementById('mockStatusText');
+  const subEl = document.getElementById('mockSub');
+  const btn = document.getElementById('mockBtn');
+  const fillEl = document.getElementById('mockFill');
+  const logEl = document.getElementById('mockLog');
+  if (!rows.length || !btn || !logEl) return;
 
-setInterval(() => {
-  v = Math.max(17, Math.min(29, v + Math.round((Math.random() - 0.5) * 4)));
-  numEl.textContent = v;
-  rowEl.textContent = v;
-}, 1600);
+  const ru = (document.documentElement.lang || 'ru') === 'ru';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const charDelay = reduced ? 0 : 14;
 
-/* прогресс в демо заполняется один раз при появлении */
-const mock = document.getElementById('mock');
-const fill = document.getElementById('mockFill');
-let filled = false;
+  const T = ru ? {
+    subCur: 'Текущий туннель · ',
+    subSel: 'Выбранный узел · ',
+    switching: 'переключение на ',
+    closed: 'соединение закрыто',
+    seq: (host, lat) => [
+      ['ws', 'CONNECT ' + host + ':443 — TLS handshake OK'],
+      ['ws', 'GET /tunnel → 101 Switching Protocols'],
+      ['ok', 'туннель установлен · RTT ' + lat + ' ms'],
+    ],
+    pool: [
+      ['ws', 'keep-alive ping → pong 18 ms'],
+      ['ok', 'MTProto-трафик Telegram идёт через туннель'],
+      ['ws', 'замер узлов: nl-2 33ms · fi-3 14ms · se-4 47ms'],
+    ],
+  } : {
+    subCur: 'Current tunnel · ',
+    subSel: 'Selected node · ',
+    switching: 'switching to ',
+    closed: 'connection closed',
+    seq: (host, lat) => [
+      ['ws', 'CONNECT ' + host + ':443 — TLS handshake OK'],
+      ['ws', 'GET /tunnel → 101 Switching Protocols'],
+      ['ok', 'tunnel established · RTT ' + lat + ' ms'],
+    ],
+    pool: [
+      ['ws', 'keep-alive ping → pong 18 ms'],
+      ['ok', 'Telegram MTProto traffic goes through the tunnel'],
+      ['ws', 'node check: nl-2 33ms · fi-3 14ms · se-4 47ms'],
+    ],
+  };
 
-const mockIO = new IntersectionObserver((entries) => {
-  if (entries[0].isIntersecting && !filled) {
-    filled = true;
-    setTimeout(() => {
-      fill.style.width = '100%';
-      setTimeout(() => { fill.style.opacity = '0'; }, 2800);
-    }, 600);
-    mockIO.disconnect();
+  let active = rows[0];
+  let connected = false;
+  let connecting = false;
+  let jitterTimer = null;
+  let gen = 0;
+
+  const host = (row) => row.querySelector('small').textContent;
+  const lat = (row) => parseInt(row.querySelector('b').textContent, 10) || 21;
+
+  async function typeLine(tag, text) {
+    const my = ++gen;
+    logEl.innerHTML = '';
+    const tagEl = document.createElement('i');
+    tagEl.className = tag;
+    tagEl.textContent = '[' + tag + ']';
+    const txtEl = document.createElement('span');
+    logEl.append(tagEl, txtEl);
+    if (!charDelay) { txtEl.textContent = text; return my === gen; }
+    // печать по реальному времени: догоняет после троттлинга таймеров в фоновой вкладке
+    const start = performance.now();
+    let shown = 0;
+    while (shown < text.length) {
+      if (my !== gen) return false;
+      await wait(24);
+      if (my !== gen) return false;
+      shown = Math.min(text.length, Math.floor((performance.now() - start) / charDelay));
+      txtEl.textContent = text.slice(0, shown);
+    }
+    return my === gen;
   }
-}, { threshold: 0.4 });
-mockIO.observe(mock);
+
+  function setStatus(mode) {
+    statusEl.classList.toggle('offline', mode !== 'online');
+    statusText.textContent = statusEl.dataset[mode];
+  }
+
+  function startJitter() {
+    stopJitter();
+    jitterTimer = setInterval(() => {
+      const b = active.querySelector('b');
+      let v = (parseInt(b.textContent, 10) || lat(active)) + Math.round((Math.random() - 0.5) * 4);
+      v = Math.max(12, Math.min(60, v));
+      b.textContent = v;
+      numEl.textContent = v;
+    }, 1600);
+  }
+
+  function stopJitter() {
+    if (jitterTimer) { clearInterval(jitterTimer); jitterTimer = null; }
+  }
+
+  async function cyclePool() {
+    let i = 0;
+    while (connected) {
+      const [tag, text] = T.pool[i++ % T.pool.length];
+      const ok = await typeLine(tag, text);
+      if (!ok) return;
+      await wait(reduced ? 2600 : 2100);
+      if (!connected || gen === 0) return;
+    }
+  }
+
+  async function connect() {
+    connecting = true;
+    btn.classList.add('busy');
+    btn.textContent = btn.dataset.connecting;
+    setStatus('connecting');
+    fillEl.style.opacity = '1';
+    fillEl.style.width = '0%';
+    void fillEl.offsetWidth;
+    fillEl.style.width = '100%';
+
+    const seq = T.seq(host(active), lat(active));
+    for (const [tag, text] of seq) {
+      const ok = await typeLine(tag, text);
+      if (!ok) { connecting = false; btn.classList.remove('busy'); return; }
+      await wait(reduced ? 200 : 650);
+    }
+
+    connected = true;
+    connecting = false;
+    setStatus('online');
+    numEl.textContent = lat(active);
+    startJitter();
+    btn.classList.remove('busy');
+    btn.textContent = btn.dataset.disconnect;
+    setTimeout(() => { fillEl.style.opacity = '0'; }, 500);
+    cyclePool();
+  }
+
+  function disconnect() {
+    connected = false;
+    gen++;
+    stopJitter();
+    setStatus('offline');
+    numEl.textContent = '—';
+    subEl.textContent = T.subSel + active.dataset.node;
+    btn.textContent = btn.dataset.connect;
+    fillEl.style.opacity = '0';
+    fillEl.style.width = '0%';
+    typeLine('ws', T.closed);
+  }
+
+  function setActive(row) {
+    rows.forEach((r) => r.classList.toggle('active', r === row));
+    active = row;
+    subEl.textContent = (connected ? T.subCur : T.subSel) + row.dataset.node;
+    if (connected) {
+      numEl.textContent = lat(row);
+      typeLine('ws', T.switching + host(row));
+    }
+  }
+
+  btn.addEventListener('click', () => {
+    if (connecting) return;
+    connected ? disconnect() : connect();
+  });
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+  });
+
+  rows.forEach((row) => {
+    row.addEventListener('click', () => {
+      if (connecting || row === active) return;
+      setActive(row);
+    });
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); }
+    });
+  });
+})();
 
 /* ---------- переключатель темы ---------- */
 (() => {
@@ -67,55 +220,6 @@ mockIO.observe(mock);
   addEventListener('load', () => {
     navigator.serviceWorker.register(swPath).catch(() => {});
   });
-})();
-
-/* ---------- живой лог подключения в демо ---------- */
-(() => {
-  const logEl = document.getElementById('mockLog');
-  if (!logEl) return;
-
-  const ru = (document.documentElement.lang || 'ru') === 'ru';
-  const LINES = ru ? [
-    ['ws', 'CONNECT de-1.tgws.net:443 — TLS handshake OK'],
-    ['ws', 'GET /tunnel → 101 Switching Protocols'],
-    ['ok', 'туннель установлен · RTT 21 ms'],
-    ['ws', 'keep-alive ping → pong 18 ms'],
-    ['ok', 'MTProto-трафик Telegram идёт через туннель'],
-    ['ws', 'замер узлов: nl-2 33ms · fi-3 14ms · se-4 47ms'],
-  ] : [
-    ['ws', 'CONNECT de-1.tgws.net:443 — TLS handshake OK'],
-    ['ws', 'GET /tunnel → 101 Switching Protocols'],
-    ['ok', 'tunnel established · RTT 21 ms'],
-    ['ws', 'keep-alive ping → pong 18 ms'],
-    ['ok', 'Telegram MTProto traffic goes through the tunnel'],
-    ['ws', 'node check: nl-2 33ms · fi-3 14ms · se-4 47ms'],
-  ];
-
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    logEl.innerHTML = '<i class="ok">[ok]</i><span>' + (ru ? 'туннель установлен · RTT 21 ms' : 'tunnel established · RTT 21 ms') + '</span>';
-    return;
-  }
-
-  let n = 0;
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-
-  async function cycle() {
-    const [tag, text] = LINES[n++ % LINES.length];
-    logEl.innerHTML = '';
-    const tagEl = document.createElement('i');
-    tagEl.className = tag;
-    tagEl.textContent = '[' + tag + ']';
-    const txtEl = document.createElement('span');
-    logEl.append(tagEl, txtEl);
-    for (const ch of text) {
-      txtEl.textContent += ch;
-      await wait(15);
-    }
-    await wait(2100);
-    cycle();
-  }
-
-  cycle();
 })();
 
 /* ---------- фон: живая сеть ---------- */
@@ -194,6 +298,36 @@ mockIO.observe(mock);
   });
 })();
 
+/* ---------- скроллспай: активный пункт меню ---------- */
+(() => {
+  const links = [...document.querySelectorAll('.nav-links a[href^="#"]')];
+  if (!links.length) return;
+  const byId = new Map(links.map((a) => [a.getAttribute('href').slice(1), a]));
+  const spy = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      const link = byId.get(e.target.id);
+      if (link) links.forEach((a) => a.classList.toggle('active', a === link));
+    }
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  byId.forEach((a, id) => {
+    const s = document.getElementById(id);
+    if (s) spy.observe(s);
+  });
+})();
+
+/* ---------- кнопка «наверх» ---------- */
+(() => {
+  const toTop = document.getElementById('toTop');
+  if (!toTop) return;
+  addEventListener('scroll', () => {
+    toTop.classList.toggle('visible', scrollY > 700);
+  }, { passive: true });
+  toTop.addEventListener('click', () => {
+    scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  });
+})();
+
 /* ---------- мобильная кнопка скачивания ---------- */
 (() => {
   const cta = document.getElementById('mobileCta');
@@ -228,4 +362,43 @@ mockIO.observe(mock);
       setTimeout(() => { btn.textContent = old; }, 1800);
     } catch (e) {}
   });
+})();
+
+/* ---------- живой бейдж версии из GitHub Releases ---------- */
+(() => {
+  const meta = document.querySelector('meta[name="tgws:repo"]');
+  const el = document.getElementById('dlMeta');
+  if (!meta || !el) return;
+  const repo = (meta.content || '').trim();
+  if (!repo) return;
+
+  const ru = (document.documentElement.lang || 'ru') === 'ru';
+  const key = 'tgws-release';
+
+  function apply(tag, date) {
+    const ver = String(tag).replace(/^v/, '');
+    let text = (ru ? 'Версия ' : 'Version ') + ver + (ru ? ' · Windows 10 / 11 · 64-бит' : ' · Windows 10 / 11 · 64-bit');
+    if (date) {
+      const d = new Date(date).toLocaleDateString(ru ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+      text += (ru ? ' · обновлено ' : ' · updated ') + d;
+    }
+    el.textContent = text;
+  }
+
+  try {
+    const cached = JSON.parse(localStorage.getItem(key) || 'null');
+    if (cached && Date.now() - cached.t < 3600e3 && cached.tag) {
+      apply(cached.tag, cached.date);
+      return;
+    }
+  } catch (e) {}
+
+  fetch('https://api.github.com/repos/' + repo + '/releases/latest')
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    .then((d) => {
+      if (!d.tag_name) return;
+      try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), tag: d.tag_name, date: d.published_at })); } catch (e) {}
+      apply(d.tag_name, d.published_at);
+    })
+    .catch(() => {});
 })();

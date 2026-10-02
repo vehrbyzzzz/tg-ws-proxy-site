@@ -1,7 +1,7 @@
 /* TG WS Proxy — service worker: офлайн-кэш.
-   При обновлении сайта поднимите версию в имени кэша (tgws-v2, tgws-v3…). */
+   При обновлении сайта поднимите версию в имени кэша (tgws-v3, tgws-v4…). */
 
-const CACHE = 'tgws-v1';
+const CACHE = 'tgws-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -17,6 +17,11 @@ const ASSETS = [
   './support.html',
   './terms.html',
   './404.html',
+  './blog/',
+  './blog/index.html',
+  './blog/ws-transport.html',
+  './blog/ping-i-dzhitter.html',
+  './blog/keep-alive.html',
 ];
 
 self.addEventListener('install', (e) => {

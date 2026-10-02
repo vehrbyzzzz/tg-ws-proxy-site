@@ -865,6 +865,197 @@ html:not([data-theme="light"]) .icon-sun { display: none; }
 
 .mobile-cta.visible { transform: none; opacity: 1; pointer-events: auto; }
 
+/* ---------- скроллспай ---------- */
+
+.nav-links a.active { color: var(--text); }
+
+/* ---------- скип-линк ---------- */
+
+.skip {
+  position: fixed;
+  top: -60px; left: 16px;
+  z-index: 200;
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  padding: 10px 18px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: top .2s;
+}
+.skip:focus { top: 12px; }
+
+/* ---------- тултипы терминов ---------- */
+
+.term {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  border-bottom: 1px dashed var(--text-4);
+}
+
+.term::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: max-content;
+  max-width: 260px;
+  padding: 9px 13px;
+  background: var(--panel-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: normal;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+  z-index: 50;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .25);
+}
+
+.term:hover::after, .term:focus::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---------- схема трафика ---------- */
+
+.scheme {
+  margin: 80px auto 0;
+  width: min(860px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--mock-bg);
+  padding: 34px 26px 26px;
+}
+
+.scheme svg { width: 100%; height: auto; display: block; }
+
+.scheme text {
+  fill: var(--text-2);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.scheme .sub { fill: var(--text-4); font-size: 10.5px; font-weight: 400; }
+.scheme .lbl { fill: var(--dim); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; }
+
+.scheme .box { fill: var(--panel); stroke: var(--border); }
+.scheme .box-us { stroke: var(--text); }
+
+.scheme .flow {
+  stroke: var(--packet);
+  stroke-opacity: .55;
+  stroke-dasharray: 5 9;
+  animation: dashmove 1.1s linear infinite;
+}
+
+@keyframes dashmove {
+  to { stroke-dashoffset: -14; }
+}
+
+/* ---------- карта узлов ---------- */
+
+.map-panel {
+  margin: 72px auto 0;
+  width: min(860px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--mock-bg);
+  padding: 20px 26px 8px;
+}
+
+.map-panel svg { width: 100%; height: auto; display: block; }
+
+.map-panel .link { stroke: var(--ring); stroke-width: 1; }
+
+.map-panel .hub { fill: var(--packet); }
+.map-panel .ring { fill: none; stroke: var(--ring); }
+.map-panel .node { fill: var(--packet); }
+.map-panel .pulse { fill: none; stroke: var(--packet); opacity: .5; }
+
+.map-panel text { fill: var(--text-2); font-family: var(--font); font-size: 12px; font-weight: 500; }
+.map-panel .sub { fill: var(--text-4); font-size: 10.5px; font-weight: 400; }
+
+/* ---------- таблица сравнения ---------- */
+
+.compare { margin-top: 56px; overflow-x: auto; }
+
+.compare table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+.compare th, .compare td {
+  border: 1px solid var(--border);
+  padding: 14px 18px;
+  text-align: left;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+  vertical-align: top;
+}
+
+.compare thead th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--panel);
+}
+
+.compare td:first-child, .compare th:first-child {
+  color: var(--muted);
+  font-weight: 400;
+  width: 22%;
+}
+
+.compare .col-us { background: var(--panel-2); color: var(--text-2); }
+.compare thead .col-us { color: var(--text); }
+
+/* ---------- кнопка «наверх» ---------- */
+
+.to-top {
+  position: fixed;
+  right: 24px; bottom: 24px;
+  z-index: 90;
+  width: 40px; height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity .3s ease, transform .3s ease, color .15s, border-color .15s;
+  padding: 0;
+}
+
+.to-top.visible { opacity: 1; transform: none; pointer-events: auto; }
+.to-top:hover { color: var(--text); border-color: var(--btn-border-hover); }
+
+/* ---------- состояния интерактивного демо ---------- */
+
+.mock-status.offline { color: var(--text-4); }
+.mock-status.offline .dot { background: var(--text-4); animation: none; }
+
+.mock-btn {
+  cursor: pointer;
+  transition: background .15s, opacity .2s;
+}
+.mock-btn:hover { background: var(--btn-bg-hover); }
+.mock-btn.busy { opacity: .65; pointer-events: none; }
+
 /* ---------- документные страницы ---------- */
 
 .doc {
@@ -900,6 +1091,40 @@ html:not([data-theme="light"]) .icon-sun { display: none; }
 }
 
 .doc .card p { margin-top: 0; }
+
+/* ---------- блог ---------- */
+
+.post-list { margin-top: 40px; border-top: 1px solid var(--border); }
+
+.post-item {
+  display: block;
+  border-bottom: 1px solid var(--border);
+  padding: 26px 4px;
+  transition: transform .3s ease;
+}
+
+.post-item:hover { transform: translateX(4px); }
+
+.post-item .p-date {
+  font-size: 11.5px;
+  color: var(--dim);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.post-item h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -.01em;
+  margin: 0 0 8px;
+}
+
+.post-item p { font-size: 14px; color: var(--text-3); margin: 0; max-width: 620px; }
+
+.doc .back { font-size: 13px; color: var(--muted); }
+.doc .back:hover { color: var(--text); }
 
 /* ---------- 404 ---------- */
 
@@ -976,4 +1201,5 @@ html { scrollbar-width: thin; scrollbar-color: var(--scroll) var(--bg); }
   .footer-inner { height: auto; padding: 28px 0; flex-direction: column; }
   .mobile-cta { display: block; }
   .lang { display: none; }
+  .to-top { display: none; }
 }

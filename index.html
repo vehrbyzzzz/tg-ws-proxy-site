@@ -8,6 +8,10 @@
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="theme-color" content="#000000">
   <meta name="color-scheme" content="dark">
+  <!-- вставьте код из Яндекс.Вебмастера и раскомментируйте -->
+  <!-- <meta name="yandex-verification" content="КОД_ИЗ_ВЕБМАСТЕРА"> -->
+  <!-- GitHub-репозиторий вида "user/repo" для живого бейджа версии -->
+  <meta name="tgws:repo" content="">
 
   <!-- при деплое раскомментируйте и укажите свой домен -->
   <!-- <link rel="canonical" href="https://ваш-домен/"> -->
@@ -95,6 +99,8 @@
 </head>
 <body>
 
+  <a class="skip" href="#main">Перейти к содержанию</a>
+
   <div class="glow glow-a" aria-hidden="true"></div>
   <div class="glow glow-b" aria-hidden="true"></div>
   <canvas class="bg-canvas" id="bg" aria-hidden="true"></canvas>
@@ -135,7 +141,7 @@
       <p class="overline">Прокси для Telegram на WebSocket-транспорте</p>
       <h1>TG WS Proxy</h1>
       <p class="slogan">Туннель живой. Telegram на связи.</p>
-      <p class="hero-sub">Поднимает WebSocket-туннель до прокси-узла и держит соединение с Telegram открытым — в один клик, без лишних настроек.</p>
+      <p class="hero-sub">Поднимает <span class="term" tabindex="0" data-tip="Постоянное соединение поверх WebSocket — обычного веб-протокола: трафик неотличим от посещения сайтов.">WebSocket-туннель</span> до прокси-узла и держит соединение с Telegram открытым — в один клик, без лишних настроек.</p>
       <div class="hero-actions">
         <a class="btn-primary" href="#download">Скачать для Windows</a>
         <a class="btn-ghost" href="#how">Как это работает</a>
@@ -146,7 +152,7 @@
     <span class="scroll-cue" aria-hidden="true"></span>
   </header>
 
-  <main>
+  <main id="main">
 
   <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
@@ -174,18 +180,18 @@
         <div class="mock-body">
           <div class="mock-side">
             <div class="mock-label">ws-узлы</div>
-            <div class="mock-row active"><span>Frankfurt<small>de-1.tgws.net</small></span><b id="mockA">21</b></div>
-            <div class="mock-row"><span>Amsterdam<small>nl-2.tgws.net</small></span><b>33</b></div>
-            <div class="mock-row"><span>Helsinki<small>fi-3.tgws.net</small></span><b>14</b></div>
-            <div class="mock-row"><span>Stockholm<small>se-4.tgws.net</small></span><b>47</b></div>
+            <div class="mock-row active" data-node="Frankfurt" tabindex="0"><span>Frankfurt<small>de-1.tgws.net</small></span><b>21</b></div>
+            <div class="mock-row" data-node="Amsterdam" tabindex="0"><span>Amsterdam<small>nl-2.tgws.net</small></span><b>33</b></div>
+            <div class="mock-row" data-node="Helsinki" tabindex="0"><span>Helsinki<small>fi-3.tgws.net</small></span><b>14</b></div>
+            <div class="mock-row" data-node="Stockholm" tabindex="0"><span>Stockholm<small>se-4.tgws.net</small></span><b>47</b></div>
           </div>
           <div class="mock-main">
-            <div class="mock-status"><span class="dot"></span>Подключено</div>
-            <div class="mock-num"><span id="mockNum">21</span><em>ms</em></div>
-            <div class="mock-sub">Текущий туннель · Frankfurt</div>
-            <div class="mock-log" id="mockLog"><i class="ws">[ws]</i><span>инициализация туннеля…</span></div>
+            <div class="mock-status offline" id="mockStatus" data-online="Подключено" data-offline="Не подключено" data-connecting="Подключение…"><span class="dot"></span><span id="mockStatusText">Не подключено</span></div>
+            <div class="mock-num"><span id="mockNum">—</span><em>ms</em></div>
+            <div class="mock-sub" id="mockSub">Выбранный узел · Frankfurt</div>
+            <div class="mock-log" id="mockLog"><i class="ws">[ws]</i><span>выберите узел и нажмите «Подключить»</span></div>
             <div class="mock-progress"><i id="mockFill"></i></div>
-            <div class="mock-btn">Подключить</div>
+            <div class="mock-btn" id="mockBtn" role="button" tabindex="0" data-connect="Подключить" data-connecting="Подключение…" data-disconnect="Отключить">Подключить</div>
           </div>
         </div>
       </div>
@@ -200,7 +206,7 @@
         <div class="step reveal">
           <span class="step-num">01</span>
           <h3>Диагностика</h3>
-          <p>Приложение проверяет доступные ws-узлы в реальном времени и замеряет отклик каждого туннеля.</p>
+          <p>Приложение проверяет доступные <span class="term" tabindex="0" data-tip="Прокси-серверы, к которым приложение подключается по WebSocket.">ws-узлы</span> в реальном времени и замеряет отклик каждого туннеля.</p>
         </div>
         <div class="step reveal">
           <span class="step-num">02</span>
@@ -210,8 +216,32 @@
         <div class="step reveal">
           <span class="step-num">03</span>
           <h3>Подключение</h3>
-          <p>Telegram переключается на выбранный туннель: keep-alive и авто-реконнект держат канал открытым, DNS-кэш очищается.</p>
+          <p>Telegram переключается на выбранный туннель: <span class="term" tabindex="0" data-tip="Периодические служебные пакеты, не дающие соединению закрыться на простое.">keep-alive</span> и авто-реконнект держат канал открытым, DNS-кэш очищается.</p>
         </div>
+      </div>
+
+      <div class="scheme reveal" role="img" aria-label="Схема: Telegram идёт через приложение и ws-туннель к серверам Telegram">
+        <svg viewBox="0 0 860 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect class="box" x="10" y="42" width="160" height="46" rx="9"/>
+          <text x="90" y="62" text-anchor="middle">Telegram</text>
+          <text class="sub" x="90" y="79" text-anchor="middle">клиент</text>
+          <rect class="box box-us" x="250" y="42" width="170" height="46" rx="9"/>
+          <text x="335" y="62" text-anchor="middle">TG WS Proxy</text>
+          <text class="sub" x="335" y="79" text-anchor="middle">приложение</text>
+          <rect class="box" x="500" y="42" width="160" height="46" rx="9"/>
+          <text x="580" y="62" text-anchor="middle">ws-узел</text>
+          <text class="sub" x="580" y="79" text-anchor="middle">de-1.tgws.net:443</text>
+          <rect class="box" x="736" y="42" width="114" height="46" rx="9"/>
+          <text x="793" y="62" text-anchor="middle">Telegram</text>
+          <text class="sub" x="793" y="79" text-anchor="middle">серверы</text>
+          <line class="flow" x1="176" y1="65" x2="244" y2="65"/>
+          <line class="flow" x1="426" y1="65" x2="494" y2="65"/>
+          <line class="flow" x1="666" y1="65" x2="730" y2="65"/>
+          <text class="lbl" x="210" y="30" text-anchor="middle">ws</text>
+          <text class="lbl" x="460" y="30" text-anchor="middle">ws</text>
+          <text class="lbl" x="698" y="30" text-anchor="middle">mtp</text>
+          <text class="sub" x="430" y="126" text-anchor="middle">Трафик Telegram зашифрован и идёт через туннель, остальной интернет — напрямую</text>
+        </svg>
       </div>
     </div>
   </section>
@@ -249,6 +279,109 @@
           <h3>Легковесность</h3>
           <p>Минимум памяти, ноль фоновой активности и рекламы. Только туннель.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="map">
+    <div class="container">
+      <p class="kicker reveal">Инфраструктура</p>
+      <h2 class="reveal">Узлы рядом с вами</h2>
+      <p class="section-sub reveal">Четыре ws-узла в Европе: приложение всегда выбирает ближайший и самый быстрый.</p>
+
+      <div class="map-panel reveal" role="img" aria-label="Схема сети: вы в центре, вокруг четыре узла во Франкфурте, Амстердаме, Хельсинки и Стокгольме">
+        <svg viewBox="0 0 860 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line class="link" x1="430" y1="140" x2="170" y2="70"/>
+          <line class="link" x1="430" y1="140" x2="700" y2="62"/>
+          <line class="link" x1="430" y1="140" x2="250" y2="210"/>
+          <line class="link" x1="430" y1="140" x2="640" y2="196"/>
+
+          <circle class="pulse" cx="170" cy="70" r="8">
+            <animate attributeName="r" values="7;20" dur="2.6s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".5;0" dur="2.6s" repeatCount="indefinite"/>
+          </circle>
+          <circle class="node" cx="170" cy="70" r="5"/>
+          <circle class="pulse" cx="700" cy="62" r="8">
+            <animate attributeName="r" values="7;20" dur="2.6s" begin=".65s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".5;0" dur="2.6s" begin=".65s" repeatCount="indefinite"/>
+          </circle>
+          <circle class="node" cx="700" cy="62" r="5"/>
+          <circle class="pulse" cx="250" cy="210" r="8">
+            <animate attributeName="r" values="7;20" dur="2.6s" begin="1.3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".5;0" dur="2.6s" begin="1.3s" repeatCount="indefinite"/>
+          </circle>
+          <circle class="node" cx="250" cy="210" r="5"/>
+          <circle class="pulse" cx="640" cy="196" r="8">
+            <animate attributeName="r" values="7;20" dur="2.6s" begin="1.95s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".5;0" dur="2.6s" begin="1.95s" repeatCount="indefinite"/>
+          </circle>
+          <circle class="node" cx="640" cy="196" r="5"/>
+
+          <circle class="ring" cx="430" cy="140" r="14"/>
+          <circle class="hub" cx="430" cy="140" r="6"/>
+
+          <text x="170" y="46" text-anchor="middle">Amsterdam</text>
+          <text class="sub" x="170" y="92" text-anchor="middle">nl-2.tgws.net</text>
+          <text x="700" y="38" text-anchor="middle">Helsinki</text>
+          <text class="sub" x="700" y="84" text-anchor="middle">fi-3.tgws.net</text>
+          <text x="250" y="242" text-anchor="middle">Frankfurt</text>
+          <text class="sub" x="250" y="196" text-anchor="middle" transform="translate(0,-6)">de-1.tgws.net</text>
+          <text x="640" y="228" text-anchor="middle">Stockholm</text>
+          <text class="sub" x="640" y="182" text-anchor="middle" transform="translate(0,-6)">se-4.tgws.net</text>
+
+          <text x="430" y="178" text-anchor="middle">вы</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="compare">
+    <div class="container">
+      <p class="kicker reveal">Сравнение</p>
+      <h2 class="reveal">Почему не VPN</h2>
+      <div class="compare reveal">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th class="col-us">TG WS Proxy</th>
+              <th>VPN</th>
+              <th>MTProto-прокси</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Что идёт через туннель</td>
+              <td class="col-us">Только Telegram</td>
+              <td>Весь трафик системы</td>
+              <td>Только Telegram</td>
+            </tr>
+            <tr>
+              <td>Скорость остального интернета</td>
+              <td class="col-us">Не меняется — идёт напрямую</td>
+              <td>Упирается в сервер VPN</td>
+              <td>Не меняется</td>
+            </tr>
+            <tr>
+              <td>Настройка</td>
+              <td class="col-us">Одна кнопка</td>
+              <td>Приложение, конфиги, ключи</td>
+              <td>Ручные ссылки в клиенте Telegram</td>
+            </tr>
+            <tr>
+              <td>Обход блокировок</td>
+              <td class="col-us">ws-канал маскируется под обычный веб</td>
+              <td>Зависит от протокола: OpenVPN часто режут</td>
+              <td>Сигнатуры прокси легко детектируются</td>
+            </tr>
+            <tr>
+              <td>Нагрузка на систему</td>
+              <td class="col-us">Минимальная</td>
+              <td>Шифрование всего трафика</td>
+              <td>Минимальная</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -302,7 +435,7 @@
     <div class="container">
       <span class="tunnel tunnel-dl" aria-hidden="true"><i></i><i></i><i></i></span>
       <h2 class="reveal">Откройте Telegram сегодня</h2>
-      <p class="dl-meta reveal">Версия 1.0.0 · Windows 10 / 11 · 64-бит</p>
+      <p class="dl-meta reveal" id="dlMeta">Версия 1.0.0 · Windows 10 / 11 · 64-бит</p>
       <!-- TODO: замените href на ссылку вашего релиза .exe -->
       <div class="dl-actions reveal">
         <a class="btn-primary btn-big" href="#" download>Скачать для Windows</a>
@@ -319,6 +452,7 @@
       <span class="footer-brand"><span class="logo-dot"></span>© 2026 TG WS Proxy</span>
       <div class="footer-links">
         <a href="#top">Наверх</a>
+        <a href="blog/">Блог</a>
         <a href="support.html">Поддержка</a>
         <a href="terms.html">Условия использования</a>
       </div>
@@ -326,6 +460,12 @@
   </footer>
 
   <a class="mobile-cta" id="mobileCta" href="#download">Скачать TG WS Proxy</a>
+
+  <button class="to-top" id="toTop" type="button" aria-label="Наверх">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 19V5M5 12l7-7 7 7"/>
+    </svg>
+  </button>
 
   <script src="app.js"></script>
 </body>
