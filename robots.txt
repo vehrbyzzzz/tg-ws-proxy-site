@@ -1,5 +1,5 @@
 User-agent: *
 Allow: /
 
-# после деплоя раскомментируйте и укажите свой домен:
-# Sitemap: https://ваш-домен/sitemap.xml
+
+Sitemap: https://vehrbyzzzz.github.io/tg-ws-proxy-site/sitemap.xml
