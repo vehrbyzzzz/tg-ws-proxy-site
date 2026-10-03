@@ -1,7 +1,7 @@
 /* TG WS Proxy — service worker: офлайн-кэш.
    При обновлении сайта поднимите версию в имени кэша (tgws-v3, tgws-v4…). */
 
-const CACHE = 'tgws-v2';
+const CACHE = 'tgws-v3';
 const ASSETS = [
   './',
   './index.html',
