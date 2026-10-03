@@ -63,7 +63,6 @@ document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
   let active = rows[0];
   let connected = false;
   let connecting = false;
-  let jitterTimer = null;
   let gen = 0;
 
   const host = (row) => row.querySelector('small').textContent;
@@ -96,19 +95,17 @@ document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
     statusText.textContent = statusEl.dataset[mode];
   }
 
-  function startJitter() {
-    stopJitter();
-    jitterTimer = setInterval(() => {
-      const b = active.querySelector('b');
-      let v = (parseInt(b.textContent, 10) || lat(active)) + Math.round((Math.random() - 0.5) * 4);
-      v = Math.max(12, Math.min(60, v));
+  // живые значения: все узлы «плавают» даже без подключения,
+  // индикатор всегда показывает задержку выбранного узла
+  function jitterTick() {
+    rows.forEach((row) => {
+      const b = row.querySelector('b');
+      let v = (parseInt(b.textContent, 10) || 10 + Math.floor(Math.random() * 45))
+        + Math.round((Math.random() - 0.5) * 6);
+      v = Math.max(9, Math.min(80, v));
       b.textContent = v;
-      numEl.textContent = v;
-    }, 1600);
-  }
-
-  function stopJitter() {
-    if (jitterTimer) { clearInterval(jitterTimer); jitterTimer = null; }
+    });
+    if (!connecting) numEl.textContent = lat(active);
   }
 
   async function cyclePool() {
@@ -143,7 +140,6 @@ document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
     connecting = false;
     setStatus('online');
     numEl.textContent = lat(active);
-    startJitter();
     btn.classList.remove('busy');
     btn.textContent = btn.dataset.disconnect;
     setTimeout(() => { fillEl.style.opacity = '0'; }, 500);
@@ -153,9 +149,8 @@ document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
   function disconnect() {
     connected = false;
     gen++;
-    stopJitter();
     setStatus('offline');
-    numEl.textContent = '—';
+    numEl.textContent = lat(active);
     subEl.textContent = T.subSel + active.dataset.node;
     btn.textContent = btn.dataset.connect;
     fillEl.style.opacity = '0';
@@ -190,6 +185,9 @@ document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); row.click(); }
     });
   });
+
+  jitterTick();
+  setInterval(jitterTick, 1600);
 })();
 
 /* ---------- переключатель темы ---------- */
