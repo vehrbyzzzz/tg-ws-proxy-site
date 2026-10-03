@@ -39,22 +39,59 @@ python3 -m http.server 8742
    - `support.html` — почта и Telegram-аккаунт.
 4. Если меняли файлы после первого визита пользователей — поднимите версию кэша в `sw.js`.
 
-## Индексация в Яндексе
+## Индексация в поисковиках
 
-1. **Яндекс.Вебмастер** — добавьте сайт, подтвердите владение метатегом
-   (заготовка `yandex-verification` уже есть в `<head>` обеих версий — вставьте код и раскомментируйте).
-2. **Sitemap** — в Вебмастере: «Индексирование → Файлы Sitemap» → добавьте `https://ваш-домен/sitemap.xml`.
-3. **Переобход** — после каждого обновления запрашивайте переобход страниц в Вебмастере.
-4. **IndexNow** (мгновенное уведомление поисковиков об изменениях):
-   в корне уже лежит файл ключа. После деплоя и замены домена отправьте:
+Сайт уже подготовлен: sitemap.xml, robots.txt, schema.org (JSON-LD), OG/Twitter-разметка,
+файл ключа IndexNow и скрипт отправки. От вас — деплой на публичный домен и пять шагов.
 
-   ```bash
-   curl -X POST https://api.indexnow.org/indexnow \
-     -H 'Content-Type: application/json' \
-     -d '{"host":"ваш-домен","key":"КЛЮЧ_ИЗ_TXT_ФАЙЛА","keyLocation":"https://ваш-домен/КЛЮЧ.txt","urlList":["https://ваш-домен/","https://ваш-домен/en/","https://ваш-домен/blog/"]}'
-   ```
-5. **Качество для роботов** — уже готово: семантическая разметка, schema.org (JSON-LD), мобильная версия,
-   быстрый статический сайт, sitemap с датами обновления, никаких блокировок в robots.txt.
+### Шаг 0. Вставьте коды верификации
+
+В `<head>` обеих версий (index.html, en/index.html) есть закомментированный блок
+верификации — вставьте коды из кабинетов и раскомментируйте:
+
+| Поисковик | Кабинет вебмастера | Метатег |
+|---|---|---|
+| Яндекс | https://webmaster.yandex.ru | `yandex-verification` |
+| Google | https://search.google.com/search-console | `google-site-verification` |
+| Bing | https://www.bing.com/webmasters | `msvalidate.01` |
+| Mail.ru | https://webmaster.mail.ru | `mailru-verification` |
+| Baidu | https://ziyuan.baidu.com | `baidu-site-verification` |
+| Naver | https://searchadvisor.naver.com | `naver-site-verification` |
+
+### Шаг 1. Замените плейсхолдер домена
+
+`https://ваш-домен` → ваш реальный адрес: в `sitemap.xml`, `robots.txt`,
+и раскомментируйте `canonical` / `og:url` / `og:image` / hreflang в обоих index.html.
+
+### Шаг 2. Добавьте sitemap в каждом кабинете
+
+В каждом вебмастере: «Индексирование → Файлы Sitemap» → `https://ваш-домен/sitemap.xml`.
+
+### Шаг 3. Залейте сайт в индексацию одной командой (IndexNow)
+
+IndexNow — общий протокол мгновенной отправки, его принимают **Яндекс, Bing, Naver, Seznam, Yep**:
+
+```bash
+python3 submit-indexnow.py https://ваш-домен
+```
+
+Скрипт сам найдёт ключ, соберёт URL из sitemap.xml и отправит их одним запросом.
+Запускайте после каждого обновления контента.
+
+### Шаг 4. Ручная отправка (где IndexNow не работает)
+
+- **Google** — Search Console → «Проверка URL» → «Запросить индексирование» (API-отправки без OAuth нет).
+- **Mail.ru, Baidu** — в кабинетах есть форма «Добавить URL / Переобход».
+
+### Шаг 5. Google-специфика
+
+Google не использует IndexNow. В Search Console отправьте sitemap (шаг 2) и запросите
+индексирование главной вручную; дальше краулер дойдёт сам — hreflang и JSON-LD уже на месте.
+
+### Контроль
+
+Индексация появляется через часы (Yandex/Bing с IndexNow) до нескольких дней (Google).
+Проверка: `site:ваш-домен` в поиске, либо статистика обхода в кабинетах вебмастера.
 
 ## Живой бейдж версии
 
