@@ -1,50 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- сайт: https://vehrbyzzzz.github.io/tg-ws-proxy-site/ -->
+<!-- сайт: https://vehrbyzzzz.github.io/ -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/</loc>
+    <loc>https://vehrbyzzzz.github.io/</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/en/</loc>
+    <loc>https://vehrbyzzzz.github.io/en/</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/blog/</loc>
+    <loc>https://vehrbyzzzz.github.io/blog/</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/blog/ws-transport.html</loc>
+    <loc>https://vehrbyzzzz.github.io/blog/ws-transport.html</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/blog/ping-i-dzhitter.html</loc>
+    <loc>https://vehrbyzzzz.github.io/blog/ping-i-dzhitter.html</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/blog/keep-alive.html</loc>
+    <loc>https://vehrbyzzzz.github.io/blog/keep-alive.html</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/support.html</loc>
+    <loc>https://vehrbyzzzz.github.io/support.html</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://vehrbyzzzz.github.io/tg-ws-proxy-site/terms.html</loc>
+    <loc>https://vehrbyzzzz.github.io/terms.html</loc>
     <lastmod>2026-10-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
