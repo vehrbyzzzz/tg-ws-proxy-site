@@ -190,6 +190,16 @@ document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
   setInterval(jitterTick, 1600);
 })();
 
+/* ---------- защита от копирования ---------- */
+(() => {
+  const block = (e) => e.preventDefault();
+  document.addEventListener('copy', block);
+  document.addEventListener('cut', block);
+  document.addEventListener('contextmenu', block);
+  document.addEventListener('dragstart', block);
+  document.addEventListener('selectstart', block);
+})();
+
 /* ---------- переключатель темы ---------- */
 (() => {
   const btn = document.getElementById('themeToggle');

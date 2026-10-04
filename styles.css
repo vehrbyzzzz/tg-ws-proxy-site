@@ -120,6 +120,14 @@ html[data-theme="light"] {
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* защита от копирования */
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+img { -webkit-user-drag: none; user-drag: none; }
+
 html { scroll-behavior: smooth; }
 
 body {
